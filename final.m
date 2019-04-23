@@ -1,30 +1,52 @@
 
 prompt = 'please choose a number denoted (1, 2 or 3): ';
-x = input(prompt);
-while x ~= 1 & x ~= 2 & x ~= 3
-    x = input(prompt);
+xxx = input(prompt);
+while xxx ~= 1 & xxx ~= 2 & xxx ~= 3
+    xxx = input(prompt);
 end
 
 
 prompt = 'please choose a frame (1 to 10): ';
-x2 = input(prompt);
-while x2<1 | x2>10 | rem(x2, 1)~=0
-    x2 = input(prompt);
+xxx2 = input(prompt);
+while xxx2<1 | xxx2>10 | rem(xxx2, 1)~=0
+    xxx2 = input(prompt);
 end
 
 
-target = [int2str(x) int2str(x2) '.jpg'];
+target = [int2str(xxx) int2str(xxx2) '.jpg'];
 
 %target = ['original/' int2str(x) '/' target];
 
 
 
-%%%%%segmenting the image, getting the mask of gesture
+%%%%%A. Segmenting the image, getting the mask of gesture
 
 mask = color_based(target);
 mask(mask>1) = 3;
+%imshow(mask, []);
 
-imshow(mask, []);
+%%%%%B. Finding the radius and centre of the hand region
+
+n = size(mask(mask > 1), 1);%pixels in hand region
+
+xc = 0;
+yc = 0;
+
+for m = 1:size(mask, 1)
+    for n = 1:size(mask, 2)
+        if mask(m, n) > 1
+            xc = xc + m;
+            yc = yc + n;
+        end
+    end
+end
+
+xc = xc / n;
+yc = yc / n;
+
+center = [xc yc];%the center of hand region
+
+
 
 
 
