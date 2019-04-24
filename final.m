@@ -12,18 +12,17 @@ while xxx2<1 | xxx2>10 | rem(xxx2, 1)~=0
     xxx2 = input(prompt);
 end
 
-
 target = [int2str(xxx) int2str(xxx2) '.jpg'];
 %}
-%target = ['original/' int2str(x) '/' target];
 
 target = [int2str(xxx) '.jpg'];
 
+
 %%%%%A. Segmenting the image, getting the mask of gesture
 
-hand = 1;
-centerDot = hand /2;
-background = 0;
+hand = 0;
+centerDot = 2;
+background = 1;
 
 mask = color_based(target);
 mask(mask==mask(1,1)) = 225;
@@ -33,7 +32,6 @@ mask(mask==225) = background;
 
 %%%%%B. Finding the radius and centre of the hand region
 
-%{
 n = size(mask(mask == hand), 1); %pixels in hand region
 
 xc = 0;
@@ -47,25 +45,22 @@ for i = 1:size(mask, 1)
         end
     end
 end
-xc = xc / n;
-yc = yc / n;
-
-center = round([xc yc]);%the center of hand region
-
-
-maskCenter = dot(mask, center)
-%}
-
-%imshow(maskCenter, []);
-
+xc = round(xc / n);
+yc = round(yc / n);
 
 %%%%%C.  Convex Hull 
-ch = bwconvhull(mask);
-imshow(ch);
+inverseMask = ~mask;
+chMask = bwconvhull(inverseMask);
+chMask = ~chMask;
+%imshow(chMask, []);
+
+distChMask = bwdist(chMask);
+radius = distChMask(xc, yc);
+%imshow(ch);
 
 %convSet = convex(mask);
-
-
+dotMask = dot(chMask, [xc, yc], radius);
+imshow(dotMask, []);
 
 
 
@@ -94,14 +89,15 @@ function [pixel_labels] = color_based(target)
 end
 
 %Drawing Dots
-function [output] = dot(mask, dot)
+function [output] = dot(mask, dot, radius)
     output = mask;
+    x = dot(1);
+    y = dot(2);
     for m = 1:size(mask, 1)
         for n = 1:size(mask, 2)
-            d = dist([m n], dot);
-            d = d(1,1);
-            if d(1,1) < 5
-                output(m, n) = 0%background;
+            d = sqrt((x-m)^2 + (y-n)^2);
+            if d(1,1) < radius
+                output(m, n) = 2;%centerDot;
             end
         end
     end 
@@ -113,7 +109,7 @@ function [set] = convex(mask)
     y = [];
     for m = 1:size(mask, 1)
         for n = 1:size(mask, 2)
-            if mask(m, n) == 1%%%hand
+            if mask(m, n) == 0%%%hand
                 x = [x; m];
                 y = [y; n];
             end
@@ -121,3 +117,17 @@ function [set] = convex(mask)
     end 
     set = convhull(x, y);
 end
+
+
+
+%%%%%%Trash Can%%%%%%%%%
+%{
+distMask = bwdist(mask);
+maxi = max(distMask(:));
+[xc, yc] = find(distMask == maxi);
+%center = [xc, yc];
+dotMask = mask;
+dotMask(xc, yc) = 2;
+imshow(dotMask, []);
+%}
+
