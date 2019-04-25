@@ -28,7 +28,7 @@ mask = color_based(target);
 mask(mask==mask(1,1)) = 225;
 mask(mask~=225) = hand;
 mask(mask==225) = background;
-%imshow(mask, []);
+imshow(mask, []);
 
 %%%%%B. Finding the radius and centre of the hand region
 
@@ -106,9 +106,9 @@ for i = 2:size(k, 1)
     if d > 70
         tips = [tips k(i)];
         %count = [count 0];
-    else
-        e = count(end);
-        e = e + 1;
+    %else
+        %e = count(end);
+        %e = e + 1;
         %count(end) = e;
     end
 end 
@@ -174,14 +174,14 @@ end
 
 numOfTips = size(tips, 2);
 
-figure, plot(X(tips), Y(tips), 'b*', xc, yc, 'r*');
+%figure, plot(X(tips), Y(tips), 'b*', xc, yc, 'r*');
 
 dotMask = imread(target);
 for i = 1:size(tips, 2)
     dotMask = dot(dotMask, [X(tips(i)) Y(tips(i))], 5);
 end
 
-figure, imshow(dotMask, []);
+%figure, imshow(dotMask, []);
 
 
 disp(['The number of fingeryips is: ', num2str(numOfTips)])
