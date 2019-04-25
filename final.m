@@ -28,7 +28,7 @@ mask = color_based(target);
 mask(mask==mask(1,1)) = 225;
 mask(mask~=225) = hand;
 mask(mask==225) = background;
-imshow(mask, []);
+%imshow(mask, []);
 
 %%%%%B. Finding the radius and centre of the hand region
 
@@ -79,6 +79,7 @@ X = X';
 Y = Y';
 
 k = convhull(X, Y);
+figure, plot(X(k), Y(k), 'b*', xc, yc, 'r*')
 
 %Getting rid of the bottom line
 for i = 1: size(k)
@@ -89,7 +90,7 @@ for i = 1: size(k)
 end
 k(k==0)=[];
 
-%figure, plot(X(k), Y(k), 'b*', xc, yc, 'r*')
+
 
 
 %%%%%D.  Getting the tips 
