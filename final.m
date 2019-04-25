@@ -79,12 +79,23 @@ X = X';
 Y = Y';
 
 k = convhull(X, Y);
-%figure, plot(xc, yc, 'r', X(k), Y(k), 'b*')
+
+%Getting rid of the bottom line
+for i = 1: size(k)
+    if X(k(i)) > (size(mask, 1)- 20)
+        
+        k(i) = 0;
+    end
+end
+k(k==0)=[];
+
+%figure, plot(X(k), Y(k), 'b*', xc, yc, 'r*')
 
 
 %%%%%D.  Getting the tips 
 
 tips = [k(1)];
+%count = [1];
 for i = 2:size(k, 1)
     last = k(i-1);
     xl = X(last);
@@ -92,11 +103,15 @@ for i = 2:size(k, 1)
     xcur = X(k(i));
     ycur = Y(k(i));
     d = sqrt((xl-xcur)^2 + (yl-ycur)^2);
-    if d > 100
+    if d > 70
         tips = [tips k(i)];
+        %count = [count 0];
+    else
+        e = count(end);
+        e = e + 1;
+        %count(end) = e;
     end
-end
-
+end 
 
 if sqrt((X(tips(1)) - X(tips(end)))^2 + (Y(tips(1)) - Y(tips(end)))^2)
     tips(end) = [];
@@ -110,30 +125,72 @@ for i = 1:size(tips, 2)
    lengths = [lengths d];
 end
 
-figure, plot(X(tips), Y(tips), 'b*', xc, yc, 'r*');
-%getting rid of the bottom line
-%{
-longestInd = find(lengths == max(lengths));
-longest = tips(longestInd);
+%figure, plot(X(tips), Y(tips), 'b*', xc, yc, 'r*');
+%radius
+%lengths
 
-temp = [];
-for i = 1:size(tips, 2)
-    d = distance(X(longest), Y(longest), X(i), Y(i));
-    temp = [temp, d];
+
+%%%%
+numOfTips = 0;
+
+temp = lengths;
+temp(temp==max(lengths))= min(temp);
+maxLengths = max(lengths);
+secLength = max(temp);%second long length
+
+maxInd = find(lengths(lengths == max(lengths)));
+maxPoint = tips(maxInd);
+
+temp = tips;
+tempLengths = lengths;
+
+if maxLengths >= 1.7*secLength
+    tips = maxPoint;
+else
+    for i = 1:size(tips, 2)
+        if X(tips(i)) >= xc
+            0;
+            if maxLengths >= 1.5*lengths(i)
+                1;
+                temp(i) = 0;
+                tempLengths(i) = 0;
+            end
+        elseif abs((X(tips(i)) - xc)) < 0.5 * abs((X(maxPoint)-xc))
+                2;
+                if maxLengths >= 1.5*lengths(i)
+                    3;
+                    temp(i) = 0;
+                    tempLengths(i) = 0;
+                end
+        end
+    end
+    temp(temp==0)=[];
+    tips = temp;
+    tempLengths(tempLengths==0)=[];
+    lengths = tempLengths;
+    
+    
 end
-bottomInd = find(temp == max(temp));
-tips(bottomInd) = [];
-lengths(bottomInd)=[];
-figure, plot(X(tips), Y(tips), 'b*')
-%disp(radius);
-%disp(lengths);
-%}
+
+numOfTips = size(tips, 2);
+
+figure, plot(X(tips), Y(tips), 'b*', xc, yc, 'r*');
+
+dotMask = imread(target);
+for i = 1:size(tips, 2)
+    dotMask = dot(dotMask, [X(tips(i)) Y(tips(i))], 5);
+end
+
+figure, imshow(dotMask, []);
+
+
+disp(['The number of fingeryips is: ', num2str(numOfTips)])
 
 
 
 
 
-
+%%%%%%%%%Helpers%%%%%%%
 %Color based Segmentation
 
 function [pixel_labels] = color_based(target)
