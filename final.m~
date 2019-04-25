@@ -58,8 +58,8 @@ distChMask = bwdist(chMask);
 radius = distChMask(xc, yc);
 
 
-%dotMask = dot(chMask, [xc, yc], radius);
-%figure, imshow(dotMask, []);
+dotMask = dot(chMask, [xc, yc], radius);
+figure, imshow(dotMask, []);
 
 %%%%%C.  Convex Hull 
 
@@ -79,7 +79,8 @@ X = X';
 Y = Y';
 
 k = convhull(X, Y);
-%figure, plot(xc, yc, 'r', X(k), Y(k), 'b*')
+figure, plot(xc, yc, 'r', X(k), Y(k), 'b*')
+%imshow(dotMask, []);
 
 
 %%%%%D.  Getting the tips 
@@ -92,7 +93,7 @@ for i = 2:size(k, 1)
     xcur = X(k(i));
     ycur = Y(k(i));
     d = sqrt((xl-xcur)^2 + (yl-ycur)^2);
-    if d > 100
+    if d > 50
         tips = [tips k(i)];
     end
 end
@@ -102,7 +103,7 @@ if sqrt((X(tips(1)) - X(tips(end)))^2 + (Y(tips(1)) - Y(tips(end)))^2)
     tips(end) = [];
 end
 
-
+    %getting ri
 lengths = [];
 for i = 1:size(tips, 2)
    t = tips(i);
@@ -110,12 +111,9 @@ for i = 1:size(tips, 2)
    lengths = [lengths d];
 end
 
-figure, plot(X(tips), Y(tips), 'b*', xc, yc, 'r*');
-%getting rid of the bottom line
-%{
 longestInd = find(lengths == max(lengths));
 longest = tips(longestInd);
-
+tips(longestInd)=[];
 temp = [];
 for i = 1:size(tips, 2)
     d = distance(X(longest), Y(longest), X(i), Y(i));
@@ -123,11 +121,11 @@ for i = 1:size(tips, 2)
 end
 bottomInd = find(temp == max(temp));
 tips(bottomInd) = [];
-lengths(bottomInd)=[];
-figure, plot(X(tips), Y(tips), 'b*')
+tips = [longest, tips];
+%}
 %disp(radius);
 %disp(lengths);
-%}
+
 
 
 
