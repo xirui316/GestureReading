@@ -1,10 +1,11 @@
 
 prompt = 'please choose a number denoted (1 to 5): ';
 xxx = input(prompt);
+%{
 while xxx ~= 1 & xxx ~= 2 & xxx ~= 3 & xxx ~= 4 & xxx ~= 5
     xxx = input(prompt);
 end
-
+%}
 %{
 prompt = 'please choose a frame (1 to 10): ';
 xxx2 = input(prompt);
@@ -24,11 +25,12 @@ hand = 0;
 centerDot = 2;
 background = 1;
 
-mask = color_based(target);
-mask(mask==mask(1,1)) = 225;
-mask(mask~=225) = hand;
-mask(mask==225) = background;
+mask = color_based(target); disp('segmented.');
+mask(mask==2) = hand;
+mask(mask~=hand) = background;
+
 %imshow(mask, []);
+
 
 %%%%%B. Finding the radius and centre of the hand region
 
@@ -47,7 +49,7 @@ for i = 1:size(mask, 1)
 end
 xc = round(xc / n);
 yc = round(yc / n);
-
+%disp('center found');
 
 inverseMask = ~mask;
 chMask = bwconvhull(inverseMask);
@@ -58,14 +60,15 @@ distChMask = bwdist(chMask);
 radius = distChMask(xc, yc);
 
 
-%dotMask = dot(chMask, [xc, yc], radius);
-%figure, imshow(dotMask, []);
+dotMask = dot(mask, [xc, yc], radius);
+figure, imshow(dotMask, []);
 
 %%%%%C.  Convex Hull 
 
 
 X = [];
 Y = [];
+
 
 for i = 1:size(mask, 1)
     for j = 1:size(mask, 2)
@@ -77,18 +80,10 @@ for i = 1:size(mask, 1)
 end
 X = X';
 Y = Y';
-
+disp('finding convex hull.');
 k = convhull(X, Y);
+disp('convex hull found.');
 figure, plot(X(k), Y(k), 'b*', xc, yc, 'r*')
-
-%Getting rid of the bottom line
-for i = 1: size(k)
-    if X(k(i)) > (size(mask, 1)- 20)
-        
-        k(i) = 0;
-    end
-end
-k(k==0)=[];
 
 
 
@@ -96,7 +91,7 @@ k(k==0)=[];
 %%%%%D.  Getting the tips 
 
 tips = [k(1)];
-%count = [1];
+count = [1];
 for i = 2:size(k, 1)
     last = k(i-1);
     xl = X(last);
@@ -106,17 +101,26 @@ for i = 2:size(k, 1)
     d = sqrt((xl-xcur)^2 + (yl-ycur)^2);
     if d > 70
         tips = [tips k(i)];
-        %count = [count 0];
-    %else
-        %e = count(end);
-        %e = e + 1;
-        %count(end) = e;
+        count = [count 0];
+    else
+        e = count(end);
+        e = e + 1;
+        count(end) = e;
     end
 end 
 
-if sqrt((X(tips(1)) - X(tips(end)))^2 + (Y(tips(1)) - Y(tips(end)))^2)
+if count(1) ~= count(end)
     tips(end) = [];
+    count(1) = count(1) + count(end);
+    count(end) = [];
 end
+
+%find the wist vertex
+wistInd = find(count == max(count));
+wist = tips(wistInd);
+
+tips(wistInd) = [];
+count(wistInd) = [];
 
 
 lengths = [];
@@ -126,7 +130,7 @@ for i = 1:size(tips, 2)
    lengths = [lengths d];
 end
 
-%figure, plot(X(tips), Y(tips), 'b*', xc, yc, 'r*');
+figure, plot(X(tips), Y(tips), 'b*', xc, yc, 'r*', X(wist), Y(wist), 'y*');
 %radius
 %lengths
 
@@ -145,11 +149,11 @@ maxPoint = tips(maxInd);
 temp = tips;
 tempLengths = lengths;
 
-if maxLengths >= 1.7*secLength
+if maxLengths >= 1.5*secLength
     tips = maxPoint;
 else
     for i = 1:size(tips, 2)
-        if X(tips(i)) >= xc
+        if X(tips(i)) >= xc%%%%%%%%%%%%%
             0;
             if maxLengths >= 1.5*lengths(i)
                 1;
@@ -190,7 +194,7 @@ disp(['The number of fingeryips is: ', num2str(numOfTips)])
 
 
 
-
+%}
 %%%%%%%%%Helpers%%%%%%%
 %Color based Segmentation
 
