@@ -17,6 +17,7 @@ function [] = DetectingFingertips()
 
     mask(mask~=back) = hand;
     mask(mask~=hand) = background;
+    imshow(mask, []);
 
     %%%%%B. Finding the radius and centre of the hand region
 
